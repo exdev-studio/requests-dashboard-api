@@ -30,3 +30,14 @@ func (r *RequestRepository) List() ([]*model.Request, error) {
 
 	return requests, nil
 }
+
+func (r *RequestRepository) Collect(req *model.Request) error {
+	if err := req.Validate(); err != nil {
+		return err
+	}
+
+	req.ID = len(r.requests) + 1
+	r.requests[req.ID] = req
+
+	return nil
+}

@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
+	"github.com/exdev-studio/requests-dashboard-api/internal/model"
 	"github.com/exdev-studio/requests-dashboard-api/internal/store"
 	"github.com/exdev-studio/requests-dashboard-api/internal/store/memstore"
 )
@@ -61,7 +62,9 @@ func (s *server) configureRouter() {
 	s.router.Use(s.setRequestID)
 	s.router.Use(s.logRequest)
 
-	s.router.HandleFunc("/requests", s.handleRequestsList()).Methods(http.MethodGet)
+	requests := s.router.PathPrefix("/requests").Subrouter()
+	requests.HandleFunc("", s.handleRequestsList()).Methods(http.MethodGet)
+	requests.HandleFunc("/collect", s.handleRequestsCollect()).Methods(http.MethodPost)
 }
 
 func (s *server) handleRequestsList() http.HandlerFunc {
@@ -73,6 +76,32 @@ func (s *server) handleRequestsList() http.HandlerFunc {
 		}
 
 		s.respond(w, http.StatusOK, requests)
+	}
+}
+
+func (s *server) handleRequestsCollect() http.HandlerFunc {
+	type request struct {
+		model.Request
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		req := &request{}
+		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+			s.error(w, http.StatusBadRequest, err)
+			return
+		}
+
+		request := &model.Request{
+			Type:   req.Type,
+			Fields: req.Fields,
+		}
+
+		if err := s.store.Request().Collect(request); err != nil {
+			s.error(w, http.StatusUnprocessableEntity, err)
+			return
+		}
+
+		s.respond(w, http.StatusCreated, request)
 	}
 }
 

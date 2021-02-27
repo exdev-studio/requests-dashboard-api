@@ -7,4 +7,5 @@ import (
 type RequestRepository interface {
 	Get(id int) (*model.Request, error)
 	List() ([]*model.Request, error)
+	Collect(*model.Request) error
 }
