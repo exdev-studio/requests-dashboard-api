@@ -1,15 +1,24 @@
 package apiserver
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
 	"github.com/exdev-studio/requests-dashboard-api/internal/store"
 	"github.com/exdev-studio/requests-dashboard-api/internal/store/memstore"
 )
+
+const (
+	ctxKeyRequestID ctxKey = iota
+)
+
+type ctxKey int8
 
 type server struct {
 	logger *logrus.Logger
@@ -49,6 +58,9 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) configureRouter() {
+	s.router.Use(s.setRequestID)
+	s.router.Use(s.logRequest)
+
 	s.router.HandleFunc("/requests", s.handleRequestsList()).Methods(http.MethodGet)
 }
 
@@ -65,7 +77,6 @@ func (s *server) handleRequestsList() http.HandlerFunc {
 }
 
 func (s *server) respond(w http.ResponseWriter, code int, data interface{}) {
-	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(code)
 	if data != nil {
 		if err := json.NewEncoder(w).Encode(data); err != nil {
@@ -77,5 +88,34 @@ func (s *server) respond(w http.ResponseWriter, code int, data interface{}) {
 func (s *server) error(w http.ResponseWriter, code int, err error) {
 	s.respond(w, code, map[string]string{
 		"error": err.Error(),
+	})
+}
+
+func (s *server) setRequestID(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := uuid.New().String()
+		w.Header().Set(HeaderRequestID, id)
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ctxKeyRequestID, id)))
+	})
+}
+
+func (s *server) logRequest(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger := s.logger.WithFields(logrus.Fields{
+			"remote_addr": r.RemoteAddr,
+			"request_id":  r.Context().Value(ctxKeyRequestID),
+		})
+		logger.Debugf("started %s %s", r.Method, r.RequestURI)
+
+		start := time.Now()
+		rw := &responseWriter{w, http.StatusOK}
+		next.ServeHTTP(rw, r)
+
+		logger.Debugf(
+			"completed with %d %s in %v",
+			rw.code,
+			http.StatusText(rw.code),
+			time.Now().Sub(start),
+		)
 	})
 }
