@@ -1,5 +1,6 @@
 # Requests Dashboard API
-Collect and analyze incoming request 
+
+Collect and analyze incoming request
 
 ## Requirements
 
@@ -9,6 +10,14 @@ Collect and analyze incoming request
 
 ```shell
 git clone git@github.com:exdev-studio/requests-dashboard-api.git
+```
+
+## Test
+
+To test the application before you build it you need to run
+
+```shell
+make test
 ```
 
 ## Build

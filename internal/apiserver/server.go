@@ -3,6 +3,7 @@ package apiserver
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
 	"github.com/exdev-studio/requests-dashboard-api/internal/store"
@@ -12,6 +13,7 @@ import (
 type server struct {
 	logger *logrus.Logger
 	store  store.Store
+	router *mux.Router
 }
 
 func newServer(c *Config) *server {
@@ -33,9 +35,10 @@ func newServer(c *Config) *server {
 	return &server{
 		logger: logger,
 		store:  s,
+		router: mux.NewRouter(),
 	}
 }
 
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	s.logger.Fatal("ServeHTTP() is not implemented")
+	s.router.ServeHTTP(w, r)
 }
