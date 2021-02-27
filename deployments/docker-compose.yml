@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  apiserver:
+    container_name: apiserver
+    env_file:
+      - ../configs/.env
+    build:
+      context: ../
+      dockerfile: build/docker/Dockerfile
+    ports:
+      - 8080:8080
