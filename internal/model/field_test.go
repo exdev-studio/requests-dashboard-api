@@ -60,11 +60,10 @@ func TestField_Validate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := tc.f().Validate()
 			if tc.valid {
 				assert.NoError(t, tc.f().Validate())
 			} else {
-				assert.EqualError(t, err, errors.New(tc.msg).Error())
+				assert.EqualError(t, tc.f().Validate(), errors.New(tc.msg).Error())
 			}
 		})
 	}

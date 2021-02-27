@@ -7,3 +7,14 @@ func TestField() *Field {
 		Value: "test-value",
 	}
 }
+
+func TestRequest() *Request {
+	f := TestField()
+	r := &Request{
+		ID:     1,
+		Type:   ReqVkCredentials,
+		Fields: []Field{*f},
+	}
+
+	return r
+}
