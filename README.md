@@ -4,7 +4,7 @@ Collect and analyze incoming request
 
 ## Requirements
 
-* Go >= 1.15 (earlier version have not been tested)
+* Go >= 1.15 (earlier versions have not been tested)
 
 ## Install
 
@@ -30,6 +30,14 @@ make
 
 Please ensure you have Go installed before you try to run the snippet above
 
+## Install app
+
+To install the app in your `$GOBIN` you need the followings:
+
+```shell
+make install
+```
+
 ## Run
 
 To run the server you need to execute the following
@@ -46,4 +54,23 @@ In case you're wondering what arguments the server has you can run
 ./bin/apiserver -help
 ```
 
-Once you run that snippet you will get a built help
+As soon as you run that snippet you will get a built help
+
+## Deployments
+
+There are two possible ways to deploy the app:
+
+* Manual Docker
+* Using Docker-compose
+
+### Manual Docker
+
+```shell
+./scripts/docker-build.sh && ./scripts/docker-run.sh
+```
+
+### Using Docker-compose
+
+```shell
+./scripts/docker-compose-run.sh
+```
