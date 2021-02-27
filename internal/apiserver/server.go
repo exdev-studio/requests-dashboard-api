@@ -4,10 +4,14 @@ import (
 	"net/http"
 
 	"github.com/sirupsen/logrus"
+
+	"github.com/exdev-studio/requests-dashboard-api/internal/store"
+	"github.com/exdev-studio/requests-dashboard-api/internal/store/memstore"
 )
 
 type server struct {
 	logger *logrus.Logger
+	store  store.Store
 }
 
 func newServer(c *Config) *server {
@@ -15,8 +19,8 @@ func newServer(c *Config) *server {
 	logger.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp: true,
 	})
-	logLevel, err := logrus.ParseLevel(c.LogLevel)
 
+	logLevel, err := logrus.ParseLevel(c.LogLevel)
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -24,8 +28,11 @@ func newServer(c *Config) *server {
 	logger.SetLevel(logLevel)
 	logger.Debugf("log level set to %s", c.LogLevel)
 
+	s := memstore.New()
+
 	return &server{
-		logger,
+		logger: logger,
+		store:  s,
 	}
 }
 
